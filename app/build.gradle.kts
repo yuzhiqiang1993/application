@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
-    implementation(project(":application"))
     implementation(libs.xeonyu.logger)
+
+//    implementation(project(":application"))
+    implementation(libs.xeonyu.application)
 }
