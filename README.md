@@ -20,12 +20,14 @@ AppManager.init(this)
 
 ### 全局的Application上下文
 
-需要使用时直接使用AppContext即可，注意包名：
+注意包名：
 
 ```
 import com.yzq.application.AppContext
-//示例
+//示例 ApplicationContext
 AppContext.checkSelfPermission( android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//示例 Application
+Utils.init(AppManager.application)
 ```
 
 ### App状态监听
@@ -50,7 +52,7 @@ AppManager.addAppStateListener(object : AppStateListener {
 ### 其他常用
 
 ```kotlin
-        /*获取当前栈顶的Activity*/
+/*获取当前栈顶的Activity*/
 val topActivity = AppManager.topActivity
 /*是否是主进程*/
 val mainProcess = AppManager.isMainProcess()
