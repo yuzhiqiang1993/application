@@ -31,5 +31,7 @@ dependencies {
     implementation(libs.xeonyu.logger)
 
 //    implementation(project(":application"))
-    implementation(libs.xeonyu.application)
+//    implementation(libs.xeonyu.application)
+
+    implementation("com.xeonyu:application:1.0.0")
 }

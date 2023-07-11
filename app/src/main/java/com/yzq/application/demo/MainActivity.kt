@@ -21,6 +21,17 @@ class MainActivity : AppCompatActivity(), AppStateListener {
             Activity2.start(this)
         }
 
+
+        /*获取当前栈顶的Activity*/
+        val topActivity = AppManager.topActivity
+        /*是否是主进程*/
+        val mainProcess = AppManager.isMainProcess()
+        /*是否处于前台*/
+        val foreground = AppManager.isForeground
+        /*退出应用*/
+        AppManager.exitApp()
+
+
     }
 
 
