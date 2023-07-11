@@ -3,7 +3,7 @@ package com.yzq.application.demo;
 import android.app.Application;
 
 import com.yzq.application.AppManager;
-import com.yzq.logger.LogCat;
+import com.yzq.logger.Logger;
 
 public class AppJava extends Application {
 
@@ -12,6 +12,6 @@ public class AppJava extends Application {
         super.onCreate();
         AppManager.init(this);
         String currentProcessName = AppManager.getCurrentProcessName();
-        LogCat.i("currentProcessName = " + currentProcessName);
+        Logger.i("currentProcessName = " + currentProcessName);
     }
 }

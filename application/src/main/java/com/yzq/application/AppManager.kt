@@ -6,7 +6,7 @@ import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import androidx.annotation.MainThread
-import com.yzq.logger.LogCat
+import com.yzq.logger.Logger
 import java.util.Stack
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
@@ -83,7 +83,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     @MainThread
     fun init(application: Application) {
         if (initialized.get()) {
-            LogCat.i("已经初始化过了")
+            Logger.i("已经初始化过了")
             return
         }
         this._application = application
@@ -125,15 +125,15 @@ object AppManager : Application.ActivityLifecycleCallbacks {
 
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        LogCat.i("onActivityCreated：${activity.javaClass.simpleName}")
+        Logger.i("onActivityCreated：${activity.javaClass.simpleName}")
     }
 
     override fun onActivityStarted(activity: Activity) {
-        LogCat.i("onActivityStarted: ${activity.javaClass.simpleName}")
+        Logger.i("onActivityStarted: ${activity.javaClass.simpleName}")
         activityStack.add(activity)
         _activityCount.incrementAndGet()//自增
         if (!_isForeground.get()) {
-            LogCat.i("onAppForeground")
+            Logger.i("onAppForeground")
             _isForeground.compareAndSet(false, true)
             appStateListenerList.forEach {
                 it.onAppForeground()
@@ -142,11 +142,11 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
-        LogCat.i("onActivityResumed: ${activity.javaClass.simpleName}")
+        Logger.i("onActivityResumed: ${activity.javaClass.simpleName}")
     }
 
     override fun onActivityPaused(activity: Activity) {
-        LogCat.i("onActivityPaused: ${activity.javaClass.simpleName}")
+        Logger.i("onActivityPaused: ${activity.javaClass.simpleName}")
     }
 
     override fun onActivityStopped(activity: Activity) {
@@ -154,7 +154,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
         if (_activityCount.get() <= 0) {
             /*说明此时应用处于后台*/
             _isForeground.set(false)
-            LogCat.i("onAppBackground")
+            Logger.i("onAppBackground")
             appStateListenerList.forEach {
                 it.onAppBackground()
             }
@@ -162,16 +162,16 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-        LogCat.i("onActivitySaveInstanceState")
+        Logger.i("onActivitySaveInstanceState")
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-        LogCat.i("onActivityDestroyed: ${activity.javaClass.simpleName}")
+        Logger.i("onActivityDestroyed: ${activity.javaClass.simpleName}")
         if (activityStack.contains(activity)) {
             activityStack.remove(activity)
         }
         if (_activityCount.get() <= 0) {
-            LogCat.i("onAppExit")
+            Logger.i("onAppExit")
             appStateListenerList.forEach {
                 it.onAppExit()
             }

@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("com.xeonyu:version-catalog:0.0.9")
+            from("com.xeonyu:version-catalog:0.1.1")
         }
     }
 }

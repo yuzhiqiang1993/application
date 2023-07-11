@@ -3,7 +3,7 @@ package com.yzq.application.demo
 import android.app.Application
 import com.yzq.application.AppManager
 import com.yzq.application.AppStateListener
-import com.yzq.logger.LogCat
+import com.yzq.logger.Logger
 
 class App : Application(), AppStateListener {
 
@@ -30,13 +30,13 @@ class App : Application(), AppStateListener {
 
         /*是否是主进程*/
         val mainProcess = AppManager.isMainProcess()
-        LogCat.i("是否是主进程：$mainProcess")
+        Logger.i("是否是主进程：$mainProcess")
         /*当前进程名称*/
         val currentProcessName = AppManager.getCurrentProcessName()
-        LogCat.i("当前进程名称：$currentProcessName")
+        Logger.i("当前进程名称：$currentProcessName")
         /*当前进程信息*/
         val currrentProcessInfo = AppManager.getCurrrentProcessInfo()
-        LogCat.i("当前进程信息：$currrentProcessInfo")
+        Logger.i("当前进程信息：$currrentProcessInfo")
     }
 
 
