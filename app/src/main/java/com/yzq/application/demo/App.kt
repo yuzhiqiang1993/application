@@ -10,6 +10,9 @@ class App : Application(), AppStateListener {
     override fun onCreate() {
         super.onCreate()
 
+
+        Logger.setDebug(BuildConfig.DEBUG)
+
         /*初始化*/
         AppManager.init(this)
         /*添加状态监听*/

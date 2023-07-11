@@ -8,8 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
-    implementation(libs.xeonyu.logger)
     implementation(libs.androidx.annotation)
+    api(libs.xeonyu.logger)
 
 }

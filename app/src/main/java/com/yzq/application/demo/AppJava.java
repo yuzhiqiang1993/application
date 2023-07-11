@@ -12,6 +12,6 @@ public class AppJava extends Application {
         super.onCreate();
         AppManager.init(this);
         String currentProcessName = AppManager.getCurrentProcessName();
-        Logger.i("currentProcessName = " + currentProcessName);
+       Logger.i("currentProcessName = " + currentProcessName);
     }
 }

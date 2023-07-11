@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object AppManager : Application.ActivityLifecycleCallbacks {
 
+    private const val TAG = "AppManager"
+
 
     private val initialized = AtomicBoolean(false)
 
