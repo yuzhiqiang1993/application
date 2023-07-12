@@ -31,6 +31,8 @@ dependencies {
     api(libs.xeonyu.logger)
 
     implementation(project(":application"))
+
+
 //    implementation(libs.xeonyu.application)
 
 }

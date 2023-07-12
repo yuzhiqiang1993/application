@@ -8,7 +8,5 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.annotation)
-    api(libs.xeonyu.logger)
 
 }
