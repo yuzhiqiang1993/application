@@ -9,7 +9,7 @@
 ### 添加依赖
 
 ```kotlin
-implementation("com.xeonyu:application:1.0.1")
+implementation("com.xeonyu:application:1.0.2")
 ```
 
 ### 在你的Application类中初始化
