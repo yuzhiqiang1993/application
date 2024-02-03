@@ -3,6 +3,7 @@ package com.yzq.application.demo
 import android.app.Application
 import com.yzq.application.AppManager
 import com.yzq.application.AppStateListener
+import com.yzq.application.AppStorage
 import com.yzq.logger.Logger
 import kotlin.concurrent.thread
 
@@ -42,6 +43,8 @@ class App : Application(), AppStateListener {
         /*当前进程信息*/
         val currrentProcessInfo = AppManager.getCurrrentProcessInfo()
         Logger.i("当前进程信息：$currrentProcessInfo")
+
+        Logger.i(AppStorage.logPathInfo)
     }
 
 

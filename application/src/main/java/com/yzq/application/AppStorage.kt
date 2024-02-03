@@ -2,7 +2,6 @@ package com.yzq.application
 
 import android.os.Environment
 import androidx.core.content.ContextCompat
-import com.yzq.logger.Logger
 import java.io.File
 
 
@@ -305,9 +304,7 @@ object AppStorage {
 
     }
 
-    fun logPathInfo() {
-
-        val pathInfo = """
+    val logPathInfo: String = """
             内部存储
             dataPath:${Internal.dataPath}
             filesPath:${Internal.filesPath}
@@ -339,7 +336,4 @@ object AppStorage {
         """.trimIndent()
 
 
-        Logger.i(pathInfo)
-
-    }
 }
