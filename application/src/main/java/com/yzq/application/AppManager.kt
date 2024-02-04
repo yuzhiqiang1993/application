@@ -24,7 +24,8 @@ object AppManager : Application.ActivityLifecycleCallbacks {
 
     private val initialized = AtomicBoolean(false)
 
-    private var debug = false
+    @Volatile
+    var isDebug = false
 
 
     @JvmStatic
@@ -88,7 +89,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
             return
         }
         this._application = application
-        this.debug = debug
+        this.isDebug = debug
         application.registerActivityLifecycleCallbacks(this)
     }
 
@@ -223,7 +224,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
 
 
     private fun log(msg: String) {
-        if (debug) {
+        if (isDebug) {
             Log.i(TAG, msg)
         }
     }
