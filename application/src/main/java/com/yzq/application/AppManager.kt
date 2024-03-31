@@ -221,6 +221,23 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     }
 
 
+    /**
+     * 添加Activity生命周期回调
+     * @param callbacks DefaultActivityLifecycleCallbacks
+     */
+    fun addActivityLifecycleCallbacks(callbacks: DefaultActivityLifecycleCallbacks) {
+        application.registerActivityLifecycleCallbacks(callbacks)
+    }
+
+    /**
+     * 移除Activity生命周期回调
+     * @param callbacks DefaultActivityLifecycleCallbacks
+     */
+    fun removeActivityLifecycleCallbacks(callbacks: DefaultActivityLifecycleCallbacks) {
+        application.unregisterActivityLifecycleCallbacks(callbacks)
+    }
+
+
     private fun log(msg: String) {
         if (isDebug) {
             Log.i(TAG, msg)

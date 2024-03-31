@@ -1,14 +1,16 @@
 package com.yzq.application.demo
 
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.yzq.application.DefaultActivityLifecycleCallbacks
 
-class Activity2 : AppCompatActivity() {
+class Activity2 : AppCompatActivity(), Application.ActivityLifecycleCallbacks,
+    DefaultActivityLifecycleCallbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_2)
-
 
     }
 
@@ -18,4 +20,6 @@ class Activity2 : AppCompatActivity() {
             context.startActivity(android.content.Intent(context, Activity2::class.java))
         }
     }
+
+
 }
