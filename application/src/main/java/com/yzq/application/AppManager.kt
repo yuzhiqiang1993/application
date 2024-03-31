@@ -47,14 +47,14 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     /*存放Activity的Stack*/
     private val activityStack: Stack<Activity> = Stack()
 
-    /*ActivityCount*/
+    /*前台Activity的数量*/
     @JvmStatic
-    private val _activityCount = AtomicInteger(0)
+    private val foregroundActivityCount = AtomicInteger(0)
 
     /*Activity的数量*/
     @JvmStatic
     val activityCount
-        get() = _activityCount.get()
+        get() = activityStack.size
 
     /**
      * 栈顶的Activity
@@ -63,7 +63,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     val topActivity: Activity?
         get() {
             return if (activityStack.size > 0) {
-                activityStack[0]
+                activityStack[activityStack.size - 1]
             } else {
                 null
             }
@@ -126,12 +126,12 @@ object AppManager : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         log("onActivityCreated：${activity.javaClass.simpleName}")
+        activityStack.add(activity)
     }
 
     override fun onActivityStarted(activity: Activity) {
         log("onActivityStarted: ${activity.javaClass.simpleName}")
-        activityStack.add(activity)
-        _activityCount.incrementAndGet()//自增
+        foregroundActivityCount.incrementAndGet()//自增
         if (!_isForeground.get()) {
             log("onAppForeground")
             _isForeground.compareAndSet(false, true)
@@ -150,9 +150,8 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStopped(activity: Activity) {
-        _activityCount.decrementAndGet()//自减
-        if (_activityCount.get() <= 0) {
-            /*说明此时应用处于后台*/
+        foregroundActivityCount.decrementAndGet()//自减
+        if (foregroundActivityCount.get() <= 0) {/*说明此时应用处于后台*/
             _isForeground.set(false)
             log("onAppBackground")
             appStateListenerList.forEach {
@@ -170,9 +169,10 @@ object AppManager : Application.ActivityLifecycleCallbacks {
         if (activityStack.contains(activity)) {
             activityStack.remove(activity)
         }
-        if (_activityCount.get() <= 0) {
+        if (foregroundActivityCount.get() <= 0) {
             log("onAppExit")
             appStateListenerList.forEach {
+                //需要注意该方法只有在用户主动退出App时才会调用，如果是App被强杀可能不会被调用，跟设备和系统有关
                 it.onAppExit()
             }
         }
@@ -193,8 +193,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
      * @return Boolean
      */
     @JvmStatic
-    fun isMainProcess(): Boolean =
-        getCurrentProcessName() == AppContext.packageName
+    fun isMainProcess(): Boolean = getCurrentProcessName() == AppContext.packageName
 
 
     /**
@@ -202,8 +201,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
      * @return String?
      */
     @JvmStatic
-    fun getCurrentProcessName(): String =
-        getCurrrentProcessInfo()?.processName ?: ""
+    fun getCurrentProcessName(): String = getCurrrentProcessInfo()?.processName ?: ""
 
 
     /**

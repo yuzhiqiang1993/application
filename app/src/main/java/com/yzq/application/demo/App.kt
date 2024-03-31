@@ -23,14 +23,17 @@ class App : Application(), AppStateListener {
 
             override fun onAppForeground() {
                 /*App切换到前台*/
+                Logger.i("App切换到前台")
             }
 
             override fun onAppExit() {
                 /*App 退出*/
+                Logger.i("App 退出")
             }
 
             override fun onAppBackground() {
                 /*App切换到后台*/
+                Logger.i("App切换到后台")
             }
         })
 
