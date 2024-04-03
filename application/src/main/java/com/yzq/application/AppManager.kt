@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * @author  yuzhiqiang (zhiqiang.yu.xeon@gmail.com)
  */
 
-object AppManager : Application.ActivityLifecycleCallbacks {
+object AppManager : DefaultActivityLifecycleCallbacks {
 
     private const val TAG = "AppManager"
 
@@ -90,7 +90,7 @@ object AppManager : Application.ActivityLifecycleCallbacks {
         }
         this._application = application
         this.isDebug = debug
-        application.registerActivityLifecycleCallbacks(this)
+        addActivityLifecycleCallbacks(this)
     }
 
     /**
@@ -150,8 +150,10 @@ object AppManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStopped(activity: Activity) {
+        log("onActivityStopped: ${activity.javaClass.simpleName}")
         foregroundActivityCount.decrementAndGet()//自减
-        if (foregroundActivityCount.get() <= 0) {/*说明此时应用处于后台*/
+        if (foregroundActivityCount.get() <= 0) {
+            //说明App切换到了后台
             _isForeground.set(false)
             log("onAppBackground")
             appStateListenerList.forEach {
