@@ -8,5 +8,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.appcompat)
+    implementation(platform(libs.kotlin.bom.stable))
+    implementation(libs.androidx.appcompat.stable)
 }

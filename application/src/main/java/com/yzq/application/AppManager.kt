@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import java.util.Stack
@@ -78,8 +80,9 @@ object AppManager : DefaultActivityLifecycleCallbacks {
 
 
     /**
-     * 初始化
+     * @description 初始化
      * @param application Application
+     * @param debug Boolean
      */
     @JvmStatic
     @JvmOverloads
@@ -94,7 +97,7 @@ object AppManager : DefaultActivityLifecycleCallbacks {
     }
 
     /**
-     * 添加App状态监听
+     * @description 添加App状态监听
      * @param appStateListener AppStateListener
      */
     @JvmStatic
@@ -105,7 +108,7 @@ object AppManager : DefaultActivityLifecycleCallbacks {
     }
 
     /**
-     * 移除App状态监听
+     * @description 移除App状态监听
      * @param appStateListener AppStateListener
      */
     @JvmStatic
@@ -115,8 +118,9 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         }
     }
 
+
     /**
-     * 清除App状态监听
+     * @description 清除App状态监听
      */
     @JvmStatic
     fun clearAppStateListener() {
@@ -207,6 +211,13 @@ object AppManager : DefaultActivityLifecycleCallbacks {
 
 
     /**
+     * 获取包名
+     */
+    @JvmStatic
+    fun getPackageName(): String = AppContext.packageName
+
+
+    /**
      * 获取当前进程信息
      * @return ActivityManager.RunningAppProcessInfo?
      */
@@ -227,6 +238,7 @@ object AppManager : DefaultActivityLifecycleCallbacks {
      * 添加Activity生命周期回调
      * @param callbacks DefaultActivityLifecycleCallbacks
      */
+    @JvmStatic
     fun addActivityLifecycleCallbacks(callbacks: DefaultActivityLifecycleCallbacks) {
         application.registerActivityLifecycleCallbacks(callbacks)
     }
@@ -235,6 +247,7 @@ object AppManager : DefaultActivityLifecycleCallbacks {
      * 移除Activity生命周期回调
      * @param callbacks DefaultActivityLifecycleCallbacks
      */
+    @JvmStatic
     fun removeActivityLifecycleCallbacks(callbacks: DefaultActivityLifecycleCallbacks) {
         application.unregisterActivityLifecycleCallbacks(callbacks)
     }
@@ -246,5 +259,37 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         }
     }
 
+
+    /**
+     * @description 判断应用是否安装
+     * @param packageName String
+     * @return Boolean
+     */
+    @JvmStatic
+    fun isAppInstalled(packageName: String): Boolean {
+        return try {
+            application.packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+
+    }
+
+
+    /**
+     * @description 安装应用
+     * @param apkPath String
+     */
+    @JvmStatic
+    fun installApk(apkPath: String) {
+        kotlin.runCatching {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.setDataAndType(Uri.parse(apkPath), "application/vnd.android.package-archive")
+            application.startActivity(intent)
+        }
+
+    }
 
 }

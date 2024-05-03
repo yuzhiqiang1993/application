@@ -1,14 +1,13 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.xeonyu.application)
-    id("org.jetbrains.kotlin.android")
 }
 
 android {
-    namespace = "com.yzq.application.demo"
+    namespace = "com.yzq.application_demo"
 
     defaultConfig {
-        applicationId = "com.yzq.application.demo"
+        applicationId = "com.yzq.application_demo"
         versionCode = 1
         versionName = "1.0"
     }
@@ -28,7 +27,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
-    api(libs.xeonyu.logger)
+    implementation(libs.xeonyu.logger)
 
     implementation(project(":application"))
 
