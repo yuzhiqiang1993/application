@@ -10,4 +10,5 @@ android {
 dependencies {
     implementation(platform(libs.kotlin.bom.stable))
     implementation(libs.androidx.appcompat.stable)
+    implementation(libs.androidx.core.ktx.stable)
 }

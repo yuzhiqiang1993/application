@@ -8,6 +8,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import androidx.core.content.FileProvider
+import java.io.File
 import java.util.Stack
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
@@ -271,25 +273,50 @@ object AppManager : DefaultActivityLifecycleCallbacks {
             application.packageManager.getPackageInfo(packageName, 0)
             true
         } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
 
     }
 
-
     /**
-     * @description 安装应用
-     * @param apkPath String
+     * 安装应用
+     *
+     * @param apkPath String apk路径
+     * @param authority String FileProvider的authority
      */
     @JvmStatic
-    fun installApk(apkPath: String) {
+    fun installApk(apkPath: String, authority: String) {
         kotlin.runCatching {
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.setDataAndType(Uri.parse(apkPath), "application/vnd.android.package-archive")
-            application.startActivity(intent)
-        }
+            val apkFile = File(apkPath)
+            if (!apkFile.exists()) {
+                throw Exception("apkPath:${apkPath} not exists")
+            }
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
+                val apkUri: Uri =
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        // 使用 FileProvider 生成 Uri
+                        FileProvider.getUriForFile(application, authority, apkFile)
+                    } else {
+                        // 直接生成 Uri
+                        Uri.fromFile(apkFile)
+                    }
+
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+            }
+
+            // 检查设备是否有处理此Intent的活动
+            if (intent.resolveActivity(application.packageManager) != null) {
+                application.startActivity(intent)
+            } else {
+                throw Exception("No Activity found to handle install apk Intent")
+            }
+        }.onFailure {
+            it.printStackTrace()
+        }
     }
 
 }
