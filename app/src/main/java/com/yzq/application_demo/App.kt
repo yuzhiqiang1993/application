@@ -3,13 +3,23 @@ package com.yzq.application_demo
 import android.app.Application
 import com.yzq.application.AppManager
 import com.yzq.application.AppStateListener
-import com.yzq.application.AppStorage
+import com.yzq.application.getAppInstallTime
+import com.yzq.application.getAppVersionCode
+import com.yzq.application.getAppVersionName
+import com.yzq.application.getCurrentProcessName
+import com.yzq.application.getCurrrentProcessInfo
+import com.yzq.application.isAppForeground
+import com.yzq.application.isMainProcess
 import com.yzq.logger.Logger
 import com.yzq.logger.console.ConsoleLogConfig
 import com.yzq.logger.console.ConsoleLogPrinter
-import kotlin.concurrent.thread
 
 class App : Application(), AppStateListener {
+
+
+    companion object {
+        const val TAG = "App"
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -52,9 +62,17 @@ class App : Application(), AppStateListener {
         val currrentProcessInfo = AppManager.getCurrrentProcessInfo()
         Logger.i("当前进程信息：$currrentProcessInfo")
 
-        Logger.i(AppStorage.logPathInfo)
+        Logger.i(
+            "当前app version:${AppManager.getAppVersionCode()}",
+            AppManager.getAppVersionName()
+        )
+        Logger.i(
+            "当前app AppManager.isAppForeground()", AppManager.isAppForeground()
+        )
+
+        Logger.i("AppManager.getAppInstallTime():", AppManager.getAppInstallTime())
+
 
     }
-
 
 }

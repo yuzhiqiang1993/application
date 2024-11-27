@@ -1,9 +1,7 @@
 package com.yzq.application
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.app.Application
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -196,45 +194,6 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         }
     }
 
-    /**
-     * 判断当前进程是否是主进程
-     * @return Boolean
-     */
-    @JvmStatic
-    fun isMainProcess(): Boolean = getCurrentProcessName() == AppContext.packageName
-
-
-    /**
-     * 获取当前进程名
-     * @return String?
-     */
-    @JvmStatic
-    fun getCurrentProcessName(): String = getCurrrentProcessInfo()?.processName ?: ""
-
-
-    /**
-     * 获取包名
-     */
-    @JvmStatic
-    fun getPackageName(): String = AppContext.packageName
-
-
-    /**
-     * 获取当前进程信息
-     * @return ActivityManager.RunningAppProcessInfo?
-     */
-    @JvmStatic
-    fun getCurrrentProcessInfo(): ActivityManager.RunningAppProcessInfo? {
-        val activityManager =
-            AppContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val runningAppProcesses = activityManager.runningAppProcesses
-
-        return runningAppProcesses.find {
-            it.pid == android.os.Process.myPid()
-        }
-
-    }
-
 
     /**
      * 添加Activity生命周期回调
@@ -261,23 +220,6 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         }
     }
 
-
-    /**
-     * @description 判断应用是否安装
-     * @param packageName String
-     * @return Boolean
-     */
-    @JvmStatic
-    fun isAppInstalled(packageName: String): Boolean {
-        return try {
-            application.packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-
-    }
 
     /**
      * 安装应用

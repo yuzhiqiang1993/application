@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.yzq.application.AppManager
 import com.yzq.application.AppStateListener
 import com.yzq.application.DefaultActivityLifecycleCallbacks
+import com.yzq.application.isMainProcess
 import com.yzq.application_demo.databinding.ActivityMainBinding
 import com.yzq.logger.Logger
 
