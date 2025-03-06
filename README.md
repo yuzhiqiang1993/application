@@ -1,13 +1,174 @@
 # Application 组件
 
-简单易用，无侵入的Application组件。
+[![Maven Central](https://img.shields.io/maven-central/v/com.xeonyu/application.svg)](https://search.maven.org/artifact/com.xeonyu/application)
+[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg)](https://android-arsenal.com/api?level=21)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-提供了常用的App状态监听以及全局ApplicationContext.以及Application周边的一些常用操作。
+一个简单易用、无侵入的 Android Application 组件库，提供应用生命周期管理、状态监听、存储管理等功能。
 
-### 添加依赖
+## 功能特点
 
-```Kotlin
-implementation("com.xeonyu:application:1.0.7")
+- 🚀 轻量级，零侵入性
+- 📱 完整的应用生命周期管理
+- 🔄 前后台状态自动监听
+- 📂 结构化的存储路径管理
+- 🛠 丰富的应用工具方法
+- ⚡ 支持多进程
+
+## 开始使用
+
+### 1. 添加依赖
+
+```kotlin
+dependencies {
+    implementation("com.xeonyu:application:1.0.7")
+}
+```
+
+### 2. 初始化
+
+在你的 Application 类中：
+
+```kotlin
+class YourApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        AppManager.init(this)
+        // 可选：开启调试模式
+        // AppManager.init(this, debug = true)
+    }
+}
+```
+
+## 核心功能
+
+### 1. 应用状态监听
+
+```kotlin
+AppManager.addAppStateListener(object : AppStateListener {
+    override fun onAppForeground() {
+        // 应用切换到前台
+    }
+    
+    override fun onAppBackground() {
+        // 应用切换到后台
+    }
+    
+    override fun onAppExit() {
+        // 应用退出
+    }
+})
+```
+
+### 2. Activity 管理
+
+```kotlin
+// 获取栈顶 Activity
+val topActivity = AppManager.topActivity
+
+// 获取 Activity 栈大小
+val count = AppManager.activityCount
+
+// 退出应用
+AppManager.exitApp()
+```
+
+### 3. 进程信息
+
+```kotlin
+// 判断是否是主进程
+val isMain = AppManager.isMainProcess()
+
+// 获取当前进程名
+val processName = AppManager.getCurrentProcessName()
+
+// 获取应用包名
+val packageName = AppManager.getPackageName()
+```
+
+### 4. 存储路径管理
+
+#### 内部存储
+
+```kotlin
+// 内部存储路径
+val dataPath = AppStorage.Internal.dataPath
+val filesPath = AppStorage.Internal.filesPath
+val cachePath = AppStorage.Internal.cachePath
+val dbPath = AppStorage.Internal.dbPath
+```
+
+#### 外部存储
+
+```kotlin
+// 私有目录（无需权限）
+val privateFiles = AppStorage.External.Private.filesPath
+val privateCache = AppStorage.External.Private.cachePath
+
+// 公共目录（需要权限）
+val publicDownload = AppStorage.External.Public.downloadPath
+val publicPictures = AppStorage.External.Public.picturesPath
+```
+
+## API 参考
+
+### AppManager API
+
+| 类别 | API | 描述 |
+|-----|-----|------|
+| 初始化 | `init(application: Application, debug: Boolean = false)` | 初始化 AppManager |
+| 状态 | `isForeground: Boolean` | 应用是否在前台 |
+| Activity | `topActivity: Activity?` | 获取栈顶 Activity |
+| | `activityCount: Int` | Activity 栈大小 |
+| | `exitApp()` | 退出应用 |
+| 进程 | `isMainProcess()` | 是否是主进程 |
+| | `getCurrentProcessName()` | 获取进程名 |
+| | `getPackageName()` | 获取包名 |
+| 生命周期 | `addActivityLifecycleCallbacks()` | 添加 Activity 生命周期回调 |
+| | `removeActivityLifecycleCallbacks()` | 移除生命周期回调 |
+| 状态监听 | `addAppStateListener()` | 添加应用状态监听 |
+| | `removeAppStateListener()` | 移除状态监听 |
+| | `clearAppStateListener()` | 清除所有状态监听 |
+
+### AppStorage API
+
+| 类别 | 路径 | 描述 |
+|-----|------|------|
+| Internal | `dataPath` | 应用数据目录 |
+| | `filesPath` | 文件目录 |
+| | `cachePath` | 缓存目录 |
+| | `dbPath` | 数据库目录 |
+| | `spPath` | SharedPreferences 目录 |
+| External.Private | `rootPath` | 外部私有根目录 |
+| | `filesPath` | 外部私有文件目录 |
+| | `cachePath` | 外部私有缓存目录 |
+| External.Public | `downloadPath` | 公共下载目录 |
+| | `picturesPath` | 公共图片目录 |
+| | `musicPath` | 公共音乐目录 |
+| | `moviesPath` | 公共视频目录 |
+
+## 注意事项
+
+1. 外部公共目录访问需要相应的存储权限
+2. Android 10 (API 29) 及以上版本使用分区存储
+3. 建议在 Application 的 onCreate 中尽早初始化
+
+## 许可证
+
+```
+Copyright 2024 XeonYu
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
 # AppManager 模块
