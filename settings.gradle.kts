@@ -12,6 +12,14 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         mavenCentral()
+
+        // SNAPSHOT 仓库（用于依赖其他项目的 SNAPSHOT 版本）
+        maven {
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            content {
+                includeVersionByRegex(".*", ".*", ".*-SNAPSHOT")
+            }
+        }
     }
 //    versionCatalogs {
 //        create("libs") {
