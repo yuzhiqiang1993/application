@@ -8,11 +8,12 @@ import android.os.Process
 
 /**
  * 获取当前进程信息
- * @return ActivityManager.RunningAppProcessInfo?
+ *
+ * @return [ActivityManager.RunningAppProcessInfo] 对象，如果获取失败则返回 null
  */
-fun AppManager.getCurrrentProcessInfo(): ActivityManager.RunningAppProcessInfo? {
+fun AppManager.getCurrentProcessInfo(): ActivityManager.RunningAppProcessInfo? {
     val activityManager = AppContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-    val runningAppProcesses = activityManager.runningAppProcesses
+    val runningAppProcesses = activityManager.runningAppProcesses ?: return null
 
     return runningAppProcesses.find {
         it.pid == Process.myPid()
@@ -21,40 +22,44 @@ fun AppManager.getCurrrentProcessInfo(): ActivityManager.RunningAppProcessInfo? 
 
 /**
  * 判断当前进程是否是主进程
- * @return Boolean
+ *
+ * @return true 表示当前进程是主进程，false 表示是子进程
  */
 fun AppManager.isMainProcess(): Boolean = getCurrentProcessName() == AppContext.packageName
 
 /**
  * 获取当前进程名
- * @return String?
+ *
+ * @return 进程名字符串，获取失败返回空字符串
  */
-fun AppManager.getCurrentProcessName(): String = getCurrrentProcessInfo()?.processName ?: ""
+fun AppManager.getCurrentProcessName(): String = getCurrentProcessInfo()?.processName ?: ""
 
 /**
- * 获取包名
- * @return String
+ * 获取应用包名
+ *
+ * @return 包名字符串
  */
 fun AppManager.getPackageName(): String = AppContext.packageName
 
 /**
  * 判断应用是否安装
- * @param packageName String
- * @return Boolean
+ *
+ * @param packageName 目标应用的包名
+ * @return true 表示已安装，false 表示未安装
  */
 fun AppManager.isAppInstalled(packageName: String): Boolean {
     return try {
-        application.packageManager.getPackageInfo(packageName, 0)
+        AppContext.packageManager.getPackageInfo(packageName, 0)
         true
     } catch (e: Exception) {
-        e.printStackTrace()
         false
     }
 }
 
 /**
  * 获取应用的 Version Name
- * @return String
+ *
+ * @return 版本名称，获取失败返回 "Unknown"
  */
 fun AppManager.getAppVersionName(): String {
     return try {
@@ -67,24 +72,29 @@ fun AppManager.getAppVersionName(): String {
 
 /**
  * 获取应用的 Version Code
- * @return Int
+ *
+ * 兼容处理：Android P (Api 28) 及以上使用 longVersionCode，以下使用 versionCode
+ *
+ * @return Version Code，获取失败返回 -1
  */
-fun AppManager.getAppVersionCode(): Int {
+fun AppManager.getAppVersionCode(): Long {
     return try {
         val packageInfo = AppContext.packageManager.getPackageInfo(AppContext.packageName, 0)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            packageInfo.longVersionCode.toInt() // API 28 及以上使用 longVersionCode
+            packageInfo.longVersionCode
         } else {
-            packageInfo.versionCode // Deprecated in API 28，但适用于旧版本
+            @Suppress("DEPRECATION")
+            packageInfo.versionCode.toLong()
         }
     } catch (e: PackageManager.NameNotFoundException) {
-        -1
+        -1L
     }
 }
 
 /**
- * 获取应用的名称
- * @return String
+ * 获取应用的名称 (Label)
+ *
+ * @return 应用名称，获取失败返回 "Unknown"
  */
 fun AppManager.getAppName(): String {
     return try {
@@ -97,8 +107,9 @@ fun AppManager.getAppName(): String {
 }
 
 /**
- * 检查是否为 Debug 模式
- * @return Boolean
+ * 检查应用是否为 Debug 模式
+ *
+ * @return true 表示为 Debug 模式，false 为 Release 模式
  */
 fun AppManager.isDebuggable(): Boolean {
     return try {
@@ -110,8 +121,9 @@ fun AppManager.isDebuggable(): Boolean {
 }
 
 /**
- * 获取安装时间
- * @return Long
+ * 获取应用首次安装时间
+ *
+ * @return 安装时间戳，获取失败返回 -1
  */
 fun AppManager.getAppInstallTime(): Long {
     return try {
@@ -123,8 +135,9 @@ fun AppManager.getAppInstallTime(): Long {
 }
 
 /**
- * 获取最后更新时间
- * @return Long
+ * 获取应用最后更新时间
+ *
+ * @return 更新时间戳，获取失败返回 -1
  */
 fun AppManager.getAppLastUpdateTime(): Long {
     return try {
@@ -136,8 +149,9 @@ fun AppManager.getAppLastUpdateTime(): Long {
 }
 
 /**
- * 获取目标 SDK 版本
- * @return Int
+ * 获取 Target SDK 版本
+ *
+ * @return Target SDK Version Code，获取失败返回 -1
  */
 fun AppManager.getTargetSdkVersion(): Int {
     return try {
@@ -148,8 +162,11 @@ fun AppManager.getTargetSdkVersion(): Int {
 }
 
 /**
- * 获取最小 SDK 版本
- * @return Int
+ * 获取 Min SDK 版本
+ *
+ * 需要 Android N (API 24) 及以上版本支持
+ *
+ * @return Min SDK Version Code，如果设备版本低于 Android N 或获取失败则返回 -1
  */
 fun AppManager.getMinSdkVersion(): Int {
     return try {
@@ -166,8 +183,11 @@ fun AppManager.getMinSdkVersion(): Int {
 }
 
 /**
- * 检查应用是否在前台运行
- * @return Boolean
+ * 检查应用是否在前台
+ *
+ * 通过遍历运行进程列表判断，准确性较高
+ *
+ * @return true 表示在前台，false 表示在后台或获取失败
  */
 fun AppManager.isAppForeground(): Boolean {
     val activityManager = AppContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

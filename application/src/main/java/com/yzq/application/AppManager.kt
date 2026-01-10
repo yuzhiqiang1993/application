@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.core.content.FileProvider
+import com.yzq.application.AppManager.application
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.CopyOnWriteArrayList
@@ -15,19 +16,28 @@ import java.util.concurrent.atomic.AtomicInteger
 
 
 /**
- * @description AppManager
- * @author  yuzhiqiang (zhiqiang.yu.xeon@gmail.com)
+ * 应用管理器
+ *
+ * 提供应用生命周期管理、Activity 栈管理、前后台状态监听等功能。
+ *
+ * 使用前需要在 Application.onCreate 中初始化：
+ * ```kotlin
+ * AppManager.init(this, BuildConfig.DEBUG)
+ * ```
+ *
+ * @author yuzhiqiang (zhiqiang.yu.xeon@gmail.com)
  */
-
 object AppManager : DefaultActivityLifecycleCallbacks {
 
     private const val TAG = "AppManager"
+    private const val MIME_TYPE_APK = "application/vnd.android.package-archive"
 
 
     private val initialized = AtomicBoolean(false)
 
     @Volatile
-    var isDebug = false
+    var isDebug: Boolean = false
+        private set
 
 
     @JvmStatic
@@ -84,10 +94,16 @@ object AppManager : DefaultActivityLifecycleCallbacks {
      * @param application Application
      * @param debug Boolean
      */
+    /**
+     * 初始化 AppManager
+     *
+     * @param application Application 实例
+     * @param debug 是否开启调试模式，开启后会打印生命周期日志
+     */
     @JvmStatic
     @JvmOverloads
     fun init(application: Application, debug: Boolean = false) {
-        if (initialized.get()) {
+        if (initialized.getAndSet(true)) {
             log("已经初始化过了")
             return
         }
@@ -139,8 +155,8 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         if (!_isForeground.get()) {
             log("onAppForeground")
             _isForeground.compareAndSet(false, true)
-            appStateListenerList.forEach {
-                it.onAppForeground()
+            appStateListenerList.forEach { listener ->
+                listener.onAppForeground()
             }
         }
     }
@@ -157,11 +173,11 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         log("onActivityStopped: ${activity.javaClass.simpleName}")
         foregroundActivityCount.decrementAndGet()//自减
         if (foregroundActivityCount.get() <= 0) {
-            //说明App切换到了后台
+            // 说明 App 切换到了后台
             _isForeground.set(false)
             log("onAppBackground")
-            appStateListenerList.forEach {
-                it.onAppBackground()
+            appStateListenerList.forEach { listener ->
+                listener.onAppBackground()
             }
         }
     }
@@ -177,9 +193,10 @@ object AppManager : DefaultActivityLifecycleCallbacks {
         }
         if (foregroundActivityCount.get() <= 0) {
             log("onAppExit")
-            appStateListenerList.forEach {
-                //需要注意该方法只有在用户主动退出App时才会调用，如果是App被强杀可能不会被调用，跟设备和系统有关
-                it.onAppExit()
+            appStateListenerList.forEach { listener ->
+                // 需要注意该方法只有在用户主动退出 App 时才会调用
+                // 如果是 App 被强杀可能不会被调用，跟设备和系统有关
+                listener.onAppExit()
             }
         }
     }
@@ -187,10 +204,13 @@ object AppManager : DefaultActivityLifecycleCallbacks {
     /**
      * 退出App
      */
+    /**
+     * 退出应用，结束所有 Activity
+     */
     @JvmStatic
     fun exitApp() {
-        activityStack.forEach {
-            it.finish()
+        activityStack.forEach { activity ->
+            activity.finish()
         }
     }
 
@@ -224,16 +244,18 @@ object AppManager : DefaultActivityLifecycleCallbacks {
     /**
      * 安装应用
      *
-     * @param apkPath String apk路径
-     * @param authority String FileProvider的authority
+     * @param apkPath APK 文件路径
+     * @param authority FileProvider 的 authority
+     * @return 安装操作的结果，成功返回 [Result.success]，失败返回包含异常信息的 [Result.failure]
      */
     @JvmStatic
-    fun installApk(apkPath: String, authority: String) {
-        kotlin.runCatching {
+    fun installApk(apkPath: String, authority: String): Result<Unit> {
+        return runCatching {
             val apkFile = File(apkPath)
             if (!apkFile.exists()) {
-                throw Exception("apkPath:${apkPath} not exists")
+                return Result.failure(IllegalArgumentException("APK 文件不存在: $apkPath"))
             }
+
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -247,17 +269,17 @@ object AppManager : DefaultActivityLifecycleCallbacks {
                         Uri.fromFile(apkFile)
                     }
 
-                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                setDataAndType(apkUri, MIME_TYPE_APK)
             }
 
-            // 检查设备是否有处理此Intent的活动
+            // 检查设备是否有处理此 Intent 的 Activity
             if (intent.resolveActivity(application.packageManager) != null) {
                 application.startActivity(intent)
             } else {
-                throw Exception("No Activity found to handle install apk Intent")
+                return Result.failure(IllegalStateException("没有找到可以处理安装 APK 的 Activity"))
             }
-        }.onFailure {
-            it.printStackTrace()
+        }.onFailure { e ->
+            Log.e(TAG, "安装 APK 失败", e)
         }
     }
 

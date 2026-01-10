@@ -6,6 +6,8 @@ plugins {
 android {
     namespace = "com.yzq.application_demo"
 
+    compileSdk = 36
+
     defaultConfig {
         applicationId = "com.yzq.application_demo"
         versionCode = 1
@@ -27,7 +29,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
-    implementation(libs.xeonyu.logger)
 
     implementation(project(":application"))
 

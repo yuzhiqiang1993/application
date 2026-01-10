@@ -1,171 +1,210 @@
 package com.yzq.application_demo
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.os.Process
 import androidx.appcompat.app.AppCompatActivity
 import com.yzq.application.AppManager
 import com.yzq.application.AppStateListener
-import com.yzq.application.DefaultActivityLifecycleCallbacks
 import com.yzq.application.AppStorage
+import com.yzq.application.DefaultActivityLifecycleCallbacks
+import com.yzq.application.getAppInstallTime
+import com.yzq.application.getAppVersionCode
+import com.yzq.application.getAppVersionName
+import com.yzq.application.getCurrentProcessInfo
 import com.yzq.application.getCurrentProcessName
-import com.yzq.application.getCurrrentProcessInfo
+import com.yzq.application.getPackageName
+import com.yzq.application.isAppForeground
 import com.yzq.application.isMainProcess
 import com.yzq.application_demo.databinding.ActivityMainBinding
-import com.yzq.logger.Logger
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity(), AppStateListener {
 
     private lateinit var binding: ActivityMainBinding
+    private val dateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置标题
-        title = "Application Demo"
-
-        // 1. 初始化UI
-        setupUI()
-
-        // 2. 添加应用状态监听
-        AppManager.addAppStateListener(this)
-
-        // 3. 添加Activity生命周期回调
-        setupActivityCallbacks()
-
-        // 4. 更新状态信息
-        updateStatusInfo()
+        initViews()
+        initData()
+        setupListeners()
     }
 
-    private fun setupUI() {
-        // 跳转到Activity2
-        binding.btnSkip.setOnClickListener {
-            Activity2.start(this)
+    private fun initViews() {
+        binding.apply {
+            btnSkip.setOnClickListener {
+                Activity2.start(this@MainActivity)
+            }
+
+            btnFile.setOnClickListener {
+                demonstrateStorage()
+            }
+
+            btnProcess.setOnClickListener {
+                showProcessDetails()
+            }
+
+            btnExit.setOnClickListener {
+                AppManager.exitApp()
+            }
+
+            btnClearLog.setOnClickListener {
+                binding.tvConsole.text = ""
+            }
+        }
+    }
+
+    private fun initData() {
+        updateStatusInfo()
+        updateTopActivityInfo()
+
+        // 注册监听
+        AppManager.addAppStateListener(this)
+        setupActivityCallbacks()
+
+        // 打印初始信息
+        appendLog("=== 应用启动 ===")
+        logAppInfo()
+    }
+
+    private fun setupListeners() {
+        // 已经在 initViews 中设置了点击事件
+    }
+
+    // 日志显示辅助方法
+    private fun appendLog(msg: String) {
+        val time = dateFormat.format(Date())
+        val logMsg = "[$time] $msg\n"
+        runOnUiThread {
+            binding.tvConsole.append(logMsg)
+            binding.svLog.post {
+                binding.svLog.fullScroll(android.view.View.FOCUS_DOWN)
+            }
+        }
+    }
+
+    private val lifecycleCallbacks = object : DefaultActivityLifecycleCallbacks {
+        override fun onActivityCreated(
+            activity: android.app.Activity,
+            savedInstanceState: android.os.Bundle?
+        ) {
+            appendLog("Activity创建: ${activity.javaClass.simpleName}")
+            updateTopActivityInfo()
         }
 
-        // 演示文件操作
-        binding.btnFile.setOnClickListener {
-            demonstrateFileOperations()
+        override fun onActivityDestroyed(activity: android.app.Activity) {
+            appendLog("Activity销毁: ${activity.javaClass.simpleName}")
+            updateTopActivityInfo()
         }
 
-        // 显示进程信息
-        binding.btnProcess.setOnClickListener {
-            showProcessInfo()
-        }
-
-        // 退出应用
-        binding.btnExit.setOnClickListener {
-            AppManager.exitApp()
+        override fun onActivityResumed(activity: android.app.Activity) {
+            updateTopActivityInfo()
         }
     }
 
     private fun setupActivityCallbacks() {
-        AppManager.addActivityLifecycleCallbacks(object : DefaultActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
-                Logger.i("Activity创建: ${activity.javaClass.simpleName}")
-                updateTopActivityInfo()
-            }
-
-            override fun onActivityDestroyed(activity: android.app.Activity) {
-                Logger.i("Activity销毁: ${activity.javaClass.simpleName}")
-                updateTopActivityInfo()
-            }
-        })
+        AppManager.addActivityLifecycleCallbacks(lifecycleCallbacks)
     }
 
     private fun updateStatusInfo() {
-        val info = """
-            应用状态信息:
-            - 栈顶Activity: ${AppManager.topActivity?.javaClass?.simpleName}
-            - Activity数量: ${AppManager.activityCount}
-            - 是否是主进程: ${AppManager.isMainProcess()}
-            - 是否在前台: ${AppManager.isForeground}
-        """.trimIndent()
-        
-        binding.tvInfo.text = info
+        val isForeground = AppManager.isAppForeground()
+        binding.tvStatus.text = if (isForeground) "前台运行" else "后台运行"
+        // 移除紫色字体，使用默认或灰色
+        binding.tvStatus.setTextColor(if (isForeground) 0xFF4CAF50.toInt() else 0xFF757575.toInt())
     }
 
     private fun updateTopActivityInfo() {
-        AppManager.topActivity?.let {
-            binding.tvTopActivity.text = "当前页面: ${it.javaClass.simpleName}"
-        }
+        val topActivityName = AppManager.topActivity?.javaClass?.simpleName ?: "无"
+        binding.tvTopActivity.text = topActivityName
     }
 
-    private fun demonstrateFileOperations() {
-        try {
-            // 在私有目录创建文件
-            val file = File(AppStorage.Internal.filesPath, "demo.txt")
-            file.writeText("这是一个测试文件 - ${System.currentTimeMillis()}")
-            
-            // 读取文件内容
-            val content = file.readText()
-            binding.tvFileContent.text = "文件内容: $content"
-            
-            Logger.i("文件操作成功")
-        } catch (e: Exception) {
-            Logger.e("文件操作失败: ${e.message}")
-            binding.tvFileContent.text = "文件操作失败: ${e.message}"
-        }
-    }
-
-    private fun showProcessInfo() {
+    private fun showProcessDetails() {
+        val isMain = AppManager.isMainProcess()
+        val processName = AppManager.getCurrentProcessName()
+        val processInfo = AppManager.getCurrentProcessInfo()
+        
         val info = """
             进程信息:
-            - 进程名称: ${AppManager.getCurrentProcessName()}
-            - 是否是主进程: ${AppManager.isMainProcess()}
-            - 详细信息: ${AppManager.getCurrrentProcessInfo()}
+            - 进程名称: $processName
+            - 是否是主进程: $isMain
+            - PID: ${Process.myPid()}
+            - UID: ${processInfo?.uid}
         """.trimIndent()
-        
-        binding.tvProcessInfo.text = info
+
+        appendLog("查看进程信息:\n$info")
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_refresh -> {
-                updateStatusInfo()
-                true
-            }
-            R.id.action_clear -> {
-                binding.tvFileContent.text = ""
-                binding.tvProcessInfo.text = ""
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun logAppInfo() {
+        val info = """
+            应用信息:
+            - 包名: ${AppManager.getPackageName()}
+            - 版本: ${AppManager.getAppVersionName()} (${AppManager.getAppVersionCode()})
+            - 安装时间: ${
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
+                Date(
+                    AppManager.getAppInstallTime()
+                )
+            )
         }
+            - 前台状态: ${AppManager.isAppForeground()}
+        """.trimIndent()
+
+        appendLog(info)
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateStatusInfo()
-        updateTopActivityInfo()
+    private fun demonstrateStorage() {
+        appendLog("--- 开始文件操作测试 ---")
+
+        // 显示所有路径信息
+        appendLog("【完整存储路径列表】\n${AppStorage.logPathInfo}")
+
+        // 测试写文件
+        try {
+            val fileName = "test_log.txt"
+            val file = File(AppStorage.Internal.filesPath, fileName)
+            val content = "Test Content at ${Date()}"
+            file.writeText(content)
+            appendLog("写入文件成功: ${file.absolutePath}")
+
+            val readContent = file.readText()
+            appendLog("读取文件成功: $readContent")
+
+        } catch (e: Exception) {
+            val error = "文件操作失败: ${e.message}"
+            appendLog(error)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         AppManager.removeAppStateListener(this)
+        AppManager.removeActivityLifecycleCallbacks(lifecycleCallbacks)
     }
 
     // AppStateListener 实现
+    override fun onAppForeground() {
+        runOnUiThread {
+            updateStatusInfo()
+            appendLog(">>> 应用切换到前台")
+        }
+    }
+
     override fun onAppBackground() {
-        Logger.i("应用进入后台")
-        binding.tvStatus.text = "状态: 后台"
+        runOnUiThread {
+            updateStatusInfo()
+            appendLog("<<< 应用切换到后台")
+        }
     }
 
     override fun onAppExit() {
-        Logger.i("应用退出")
-    }
-
-    override fun onAppForeground() {
-        Logger.i("应用进入前台")
-        binding.tvStatus.text = "状态: 前台"
+        runOnUiThread {
+            appendLog("XXX 应用退出")
+        }
     }
 }

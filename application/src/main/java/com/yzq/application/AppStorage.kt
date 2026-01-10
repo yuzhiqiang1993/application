@@ -6,16 +6,23 @@ import java.io.File
 
 
 /**
- * @description: App存储
- * Android的存储分为内部存储和外部存储
- * 早期的手机设备内部存储较小，都是通过插拔sd卡挂载外部存储的，后来的设备都是直接在手机内部集成一款容量较大的存储，将其划分为内部存储和外部存储。
- * 在Android10之前，没有强制做分区存储，导致每个app都获取到读写外部存储权限之后就能随意操作根目录，每个app一般都是创建一个自用的文件夹，往里面存数据，但是公共目录的数据是不会随着app的卸载而被清除的，
- * 这就导致了垃圾文件越来越多，且不好管理。还有一个就就是隐私安全得不到保障，我的创建的公共目录其他app也能访问，安全性不高。
- * 因此，在Android10的时候就增加了分区存储的特性，同时对权限做了进一步的收紧（沙盒模式），App只能访问自己目录下的文件和公共媒体文件，可以读写自己创建的所有文件，删除其他App创建的媒体类文件则需要用户授权，无法删除其他App创建的非媒体文件
- * @author : yuzhiqiang
+ * App 存储路径管理
+ *
+ * 提供内部存储和外部存储的路径获取，包括：
+ * - [Internal] 内部存储（无需权限，应用私有）
+ * - [External.Private] 外部私有目录（无需权限，应用卸载时删除）
+ * - [External.Public] 外部公共目录（需要权限，应用卸载时保留）
+ *
+ * 使用示例：
+ * ```kotlin
+ * val filesPath = AppStorage.Internal.filesPath
+ * val downloadPath = AppStorage.External.Private.downloadPath
+ * ```
+ *
+ * @see Internal
+ * @see External
+ * @author yuzhiqiang
  */
-
-
 object AppStorage {
 
     /**
@@ -67,10 +74,11 @@ object AppStorage {
 
 
         /**
+         * 代码缓存目录
          * /data/user/0/com.yzq.kotlincommon/code_cache/
          */
         val codeCachePath =
-            runCatching { "${ContextCompat.getCodeCacheDir(AppContext)}${File.separator}}" }.getOrDefault(
+            runCatching { "${ContextCompat.getCodeCacheDir(AppContext)}${File.separator}" }.getOrDefault(
                 ""
             )
     }
